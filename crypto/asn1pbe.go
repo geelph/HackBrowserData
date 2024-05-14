@@ -7,7 +7,7 @@ import (
 	"encoding/asn1"
 	"errors"
 
-	"golang.org/x/crypto/pbkdf2"
+	"github.com/moond4rk/hackbrowserdata/utils/cryptoutil"
 )
 
 type ASN1PBE interface {
@@ -62,7 +62,7 @@ func (n nssPBE) Decrypt(globalSalt []byte) ([]byte, error) {
 	return DES3Decrypt(key, iv, n.Encrypted)
 }
 
-func (n nssPBE) Encrypt(globalSalt []byte, plaintext []byte) ([]byte, error) {
+func (n nssPBE) Encrypt(globalSalt, plaintext []byte) ([]byte, error) {
 	key, iv := n.deriveKeyAndIV(globalSalt)
 
 	return DES3Encrypt(key, iv, plaintext)
@@ -158,7 +158,7 @@ func (m metaPBE) deriveKeyAndIV(globalSalt []byte) ([]byte, []byte) {
 	iter := m.AlgoAttr.Data.Data.SlatAttr.IterationCount
 	keyLen := m.AlgoAttr.Data.Data.SlatAttr.KeySize
 
-	key := pbkdf2.Key(password[:], salt, iter, keyLen, sha256.New)
+	key := cryptoutil.PBKDF2Key(password[:], salt, iter, keyLen, sha256.New)
 	iv := append([]byte{4, 14}, m.AlgoAttr.Data.IVData.IV...)
 	return key, iv
 }
